@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -179,7 +180,11 @@ public class GeneratedStatementTests extends AbstractDataTests {
      */
     @Test
     void shouldFindByTitleIn() {
-        assertThat(repo.findByTitleIn(List.of("Dune", "The Name of the Wind")), containsInAnyOrder(
+        List<String> titles = new ArrayList<>();
+        titles.add("Dune");
+        titles.add("The Name of the Wind");
+
+        assertThat(repo.findByTitleIn(titles), containsInAnyOrder(
                 books.stream().filter(book -> book.getTitle().equals("Dune")
                         || book.getTitle().equals("The Name of the Wind")).toArray()));
     }
