@@ -15,6 +15,7 @@
  */
 package io.micronaut.coherence.data;
 
+import com.tangosol.util.UUID;
 import io.micronaut.coherence.data.model.Author;
 import io.micronaut.coherence.data.model.Book;
 import io.micronaut.coherence.data.repositories.BookRepository;
@@ -34,7 +35,7 @@ import static org.hamcrest.core.Is.is;
 
 @MicronautTest(propertySources = {"classpath:sessions.yaml"})
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
-public class QueryTests extends AbstractDataTests {
+public class GeneratedStatementTests extends AbstractDataTests {
 
     /**
      * A {@code repository} for validating generated queries.
@@ -289,5 +290,45 @@ public class QueryTests extends AbstractDataTests {
                 is(books.stream()
                         .filter(book -> book.getAuthor().equals(FRANK_HERBERT))
                         .collect(Collectors.averagingInt(Book::getPages)).longValue()));
+    }
+
+    /**
+     * Validate batch work as expected.
+     */
+    @Test
+    void shouldSupportBatchUpdates() {
+        repo.updateByTitleStartingWith("Du", 700);
+        assertThat(repo.findById(DUNE.getUuid()).get().getPages(), is(700));
+        assertThat(repo.findById(DUNE_MESSIAH.getUuid()).get().getPages(), is(700));
+    }
+
+    /**
+     * Validate single update with existing value returns the expected value and updates
+     * the book.
+     */
+    @Test
+    void shouldSupportSingleUpdates() {
+        assertThat(repo.update(DUNE.getUuid(), 999), is(1));
+        assertThat(repo.findById(DUNE.getUuid()).get().getPages(), is(999));
+    }
+
+    /**
+     * Validate expected return value when the no entity matches.
+     */
+    @Test
+    void shouldSupportSingleUpdatesNoMatch() {
+        assertThat(repo.update(new UUID(), 999), is(0));
+        assertThat(repo.findById(DUNE.getUuid()).get().getPages(), is(DUNE.getPages()));
+    }
+
+    /**
+     * Validate batch work as expected.
+     */
+    @Test
+    void shouldSupportBatchDeletes() {
+        repo.deleteByTitleStartingWith("Du");
+        assertThat(repo.count(), is(2L));
+        assertThat(repo.findById(DUNE.getUuid()).isPresent(), is(false));
+        assertThat(repo.findById(DUNE_MESSIAH.getUuid()).isPresent(), is(false));
     }
 }
